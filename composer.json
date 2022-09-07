@@ -1,0 +1,19 @@
+{
+    "name": "chalkina.natalia/project",
+    "description": "course project PHP",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "ChalkinaNatalia\\Project\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Natalya",
+            "email": "m_d.r.lecter@protonmail.com"
+        }
+    ],
+    "require": {
+        "fakerphp/faker": "^1.20"
+    }
+}
