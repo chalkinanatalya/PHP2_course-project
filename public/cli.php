@@ -40,7 +40,7 @@ try {
     }
 
     
-} catch (CommandException)
+} catch (CommandException $commandException)
 {
     echo $commandException->getMessage();
 }

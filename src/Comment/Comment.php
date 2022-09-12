@@ -1,19 +1,31 @@
 <?php
-namespace ChalkinaNatalia\Project\Comment;
-use ChalkinaNatalia\Project\Person\User;
-class Comment
+namespace Project\Comment;
+use Project\Traits\Id;
+class Comment implements CommentInterface
 {
+    use Id;
     public function __construct(
-        private int $id,
-        private int $authorId,
         private int $postId,
-        private string $textComment,
-
+        private int $authorId,
+        private string $text,
     ) {
+    }
+
+    public function getPostId(): int
+    {
+        return $this->postId;
+    }
+    public function getAuthorId(): int
+    {
+        return $this->authorId;
+    }
+    public function getText(): string
+    {
+        return $this->text;
     }
 
     public function __toString()
     {
-        return $this->textComment;
+        return $this->text;
     }
 }

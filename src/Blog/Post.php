@@ -1,17 +1,31 @@
 <?php
-namespace ChalkinaNatalia\Project\Blog;
-use ChalkinaNatalia\Project\Person\User;
-class Post
+namespace Project\Blog;
+use Project\Traits\Id;
+class Post implements PostInterface
 {
+    use Id;
     public function __construct(
-        private int $id,
         private int $authorId,
-        private string $header,
+        private string $title,
         private string $text,
     ) {
     }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+    public function getText(): string
+    {
+        return $this->text;
+    }
+    public function getAuthorId(): int
+    {
+        return $this->authorId;
+    }
+
     public function __toString()
     {
-        return $this->header . '>>>' . $this->text;
+        return $this->title . '>>>' . $this->text;
     }
 }
