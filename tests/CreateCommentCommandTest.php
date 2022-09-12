@@ -8,6 +8,7 @@ use Project\Exceptions\ArgumentException;
 use PHPUnit\Framework\TestCase;
 use Project\Repositories\Comment\CommentRepositoryInterface;
 use Project\Exceptions\CommentNotFoundException;
+use Project\Repositories\Comment\CommentRepository;
 class CreateCommentCommandTest extends TestCase
 {
     private function makeCommentRepository(): CommentRepositoryInterface
@@ -43,8 +44,24 @@ class CreateCommentCommandTest extends TestCase
         $this->expectExceptionMessage('No such argument: text');
         $command->handle(new Argument(['postId' => '1','authorId' => '1']));
     }
+    public function testItFindComment(): void
+    {
+        $commentRepository = new CommentRepository();
 
-    public function testItSavesUserToRepository(): void
+        $testComment = new Comment(1, 1, 'testText');
+        $testComment->setId(1);
+        $comment = $commentRepository->get(1);
+        $this->assertEquals($testComment, $comment);
+    }
+    public function testItThrowsAnExceptionWhenPostCanNotBeFound(): void
+    {
+        $commentRepository = new CommentRepository();
+        $this->expectException(CommentNotFoundException::class);
+        $this->expectExceptionMessage('Comment with id: 7 not found');
+        $commentRepository->get(7);
+    }
+
+    public function testItSavesCommentToRepository(): void
     {
         $commentRepository = new class implements CommentRepositoryInterface {
         private bool $called = false;

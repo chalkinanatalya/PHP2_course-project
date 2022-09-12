@@ -22,7 +22,7 @@ class CommentRepository implements CommentRepositoryInterface
     public function save(Comment $comment): void
     {
         $statement = $this->connection->prepare(
-            'INSERT INTO post (post_id, author_id, text)
+            'INSERT INTO comment (post_id, author_id, text)
             VALUES (:post_id, :author_id, :text)'
         );
 

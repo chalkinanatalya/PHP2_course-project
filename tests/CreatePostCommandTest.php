@@ -8,6 +8,7 @@ use Project\Exceptions\ArgumentException;
 use PHPUnit\Framework\TestCase;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Exceptions\PostNotFoundException;
+use Project\Repositories\Post\PostRepository;
 class CreatePostCommandTest extends TestCase
 {
     private function makePostRepository(): PostRepositoryInterface
@@ -43,8 +44,23 @@ class CreatePostCommandTest extends TestCase
         $this->expectExceptionMessage('No such argument: text');
         $command->handle(new Argument(['userId' => '1','title' => 'testTitle2']));
     }
+    public function testItFindPost(): void
+    {
+        $postRepository = new PostRepository();
 
-    public function testItSavesUserToRepository(): void
+        $testPost = new Post(1, 'testTitle', 'testText');
+        $testPost->setId(1);
+        $post = $postRepository->get(1);
+        $this->assertEquals($testPost, $post);
+    }
+    public function testItThrowsAnExceptionWhenPostCanNotBeFound(): void
+    {
+        $postRepository = new PostRepository();
+        $this->expectException(PostNotFoundException::class);
+        $this->expectExceptionMessage('Post with id: 5 not found');
+        $postRepository->get(5);
+    }
+    public function testItSavesPostToRepository(): void
     {
         $postRepository = new class implements PostRepositoryInterface {
         private bool $called = false;
