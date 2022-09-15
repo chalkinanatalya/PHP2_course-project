@@ -19,9 +19,26 @@ class CreatePostActionTest extends TestCase
     * @runInSeparateProcess
     * @preserveGlobalState disabled
     */
-    public function testItReturnsErrorResponseIfNoEmailProvided(): void
+    public function testItReturnsSuccessfulResponse(): void
     {
-        $testBody = array('author_id' => '1', 'text' => 'some text', 'title' => 'some title');
+        $testBody = array('author_id' => "1", 'text' => 'some text', 'title' => 'some title');
+        $request = new Request([], [], json_encode($testBody));
+        $postRepository = $this->postRepository([]);
+        $userRepository = $this->userRepository([]);
+        $action = new CreatePostAction($postRepository, $userRepository);
+
+        $response = $action->handle($request);
+        $this->assertInstanceOf(SuccessfulResponse::class, $response);
+        $this->expectOutputString('{"success":true,"data":{"title":"some title","text":"some text"}}');
+        $response->send();
+    }
+    /**
+    * @runInSeparateProcess
+    * @preserveGlobalState disabled
+    */
+    public function testItReturnsErrorResponseIfIdIsWrong(): void
+    {
+        $testBody = array('author_id' => 'abc', 'text' => 'some text', 'title' => 'some title');
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
@@ -29,7 +46,58 @@ class CreatePostActionTest extends TestCase
 
         $response = $action->handle($request);
         $this->assertInstanceOf(ErrorResponse::class, $response);
-        $this->expectOutputString('{"success":false,"reason":"No such query param in the request: email"}');
+        $this->expectOutputString('{"success":false,"reason":"author_id must be int"}');
+        $response->send();
+    }
+    /**
+    * @runInSeparateProcess
+    * @preserveGlobalState disabled
+    */
+    public function testItReturnsErrorResponseIfUserNotFound(): void
+    {
+        $testBody = array('author_id' => "2", 'text' => 'some text', 'title' => 'some title');
+        $request = new Request([], [], json_encode($testBody));
+        $postRepository = $this->postRepository([]);
+        $userRepository = $this->userRepository([]);
+        $action = new CreatePostAction($postRepository, $userRepository);
+
+        $response = $action->handle($request);
+        $this->assertInstanceOf(ErrorResponse::class, $response);
+        $this->expectOutputString('{"success":false,"reason":"No user with such id"}');
+        $response->send();
+    }
+    /**
+    * @runInSeparateProcess
+    * @preserveGlobalState disabled
+    */
+    public function testItReturnsErrorResponseIfNoTitleProvided(): void
+    {
+        $testBody = array('author_id' => "1", 'text' => 'some text');
+        $request = new Request([], [], json_encode($testBody));
+        $postRepository = $this->postRepository([]);
+        $userRepository = $this->userRepository([]);
+        $action = new CreatePostAction($postRepository, $userRepository);
+
+        $response = $action->handle($request);
+        $this->assertInstanceOf(ErrorResponse::class, $response);
+        $this->expectOutputString('{"success":false,"reason":"No such field: title"}');
+        $response->send();
+    }
+    /**
+    * @runInSeparateProcess
+    * @preserveGlobalState disabled
+    */
+    public function testItReturnsErrorResponseIfNoAuthorIdProvided(): void
+    {
+        $testBody = array('text' => 'some text', 'title' => 'some title');
+        $request = new Request([], [], json_encode($testBody));
+        $postRepository = $this->postRepository([]);
+        $userRepository = $this->userRepository([]);
+        $action = new CreatePostAction($postRepository, $userRepository);
+
+        $response = $action->handle($request);
+        $this->assertInstanceOf(ErrorResponse::class, $response);
+        $this->expectOutputString('{"success":false,"reason":"No such field: author_id"}');
         $response->send();
     }
 
@@ -47,7 +115,11 @@ class CreatePostActionTest extends TestCase
 
             public function get(int $id): Post
             {
-                throw new PostNotFoundException("Not found");
+                throw new PostNotFoundException("Post not found");
+            }
+
+            public function delete(int $id): void
+            {
             }
         };
     }
@@ -66,7 +138,11 @@ class CreatePostActionTest extends TestCase
 
             public function get(int $id): User
             {
-                throw new UserNotFoundException("Not found");
+                if($id === 1) {
+                    return new User('Ivan', 'Ivanov','test1@test.com');
+                } else {
+                    throw new UserNotFoundException("No user with such id");
+                }
             }
 
             public function findUserByEmail(string $email): User
@@ -77,7 +153,7 @@ class CreatePostActionTest extends TestCase
                         return $user;
                     }
                 }
-                throw new UserNotFoundException("Not found");
+                throw new UserNotFoundException("User with email not found");
             }
 
             public function mapUser(object $userObj): User

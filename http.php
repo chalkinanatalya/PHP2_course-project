@@ -1,10 +1,13 @@
 <?php
 use Project\Http\Actions\Post\FindByIdAction;
 use Project\Http\Actions\Post\CreatePostAction;
+use Project\Http\Actions\Post\DeletePostAction;
 use Project\Http\Actions\User\FindByEmailAction;
+use Project\Http\Actions\Comment\CreateCommentAction;
 use Project\Http\Response\ErrorResponse;
 use Project\Exceptions\HttpException;
 use Project\Http\Request\Request;
+use Project\Repositories\Comment\CommentRepository;
 use Project\Repositories\Post\PostRepository;
 use Project\Repositories\User\UserRepository;
 
@@ -31,7 +34,6 @@ try {
     (new ErrorResponse)->send();
     return;
 }
-    
 
 $routes = [
     'GET' => [
@@ -43,7 +45,17 @@ $routes = [
             new PostRepository(),
             new UserRepository()
         ),
+        '/post/comment' => new CreateCommentAction(
+            new CommentRepository(),
+            new PostRepository(),
+            new UserRepository()
+        ),
     ],
+    'DELETE' => [
+        '/post' => new DeletePostAction(
+            new PostRepository()
+        ),
+    ]
 ];
 
 if (!array_key_exists($method, $routes)) {

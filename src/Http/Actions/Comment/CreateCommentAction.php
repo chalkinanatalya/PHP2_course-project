@@ -1,5 +1,5 @@
 <?php
-namespace Project\Http\Actions\Post;
+namespace Project\Http\Actions\Comment;
 
 use Project\Exceptions\ArgumentException;
 use Project\Exceptions\UserNotFoundException;
@@ -9,13 +9,15 @@ use Project\Exceptions\HttpException;
 use Project\Http\Request\Request;
 use Project\Http\Response\Response;
 use Project\Http\Response\SuccessfulResponse;
-use Project\Blog\Post;
+use Project\Comment\Comment;
+use Project\Repositories\Comment\CommentRepositoryInterface;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Repositories\User\UserRepositoryInterface;
 
-class CreatePostAction implements ActionInterface
+class CreateCommentAction implements ActionInterface
 {
     public function __construct(
+        private CommentRepositoryInterface $commentRepository,
         private PostRepositoryInterface $postRepository,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -40,20 +42,20 @@ class CreatePostAction implements ActionInterface
         }
 
         try {
-            $post = new Post(
+            $comment = new Comment(
+                $request->jsonBodyField('post_id'),
                 $authorId,
-                $request->jsonBodyField('title'),
                 $request->jsonBodyField('text'),
             );
         } catch (HttpException $e) {
             return new ErrorResponse($e->getMessage());
         }
         
-        $this->postRepository->save($post);
+        $this->commentRepository->save($comment);
 
         return new SuccessfulResponse([
-            'title' => $post->getTitle(),
-            'text' => $post->getText(),
+            'postId' => $comment->getPostId(),
+            'text' => $comment->getText(),
         ]);
     }
 }

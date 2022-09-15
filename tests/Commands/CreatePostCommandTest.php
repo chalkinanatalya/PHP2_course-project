@@ -22,6 +22,9 @@ class CreatePostCommandTest extends TestCase
             {
                 throw new PostNotFoundException("Post with id: $id not found");
             }
+            public function delete(int $id): void
+            {
+            }
         };
     }
     public function testItRequiresUserId(): void
@@ -57,8 +60,8 @@ class CreatePostCommandTest extends TestCase
     {
         $postRepository = new PostRepository();
         $this->expectException(PostNotFoundException::class);
-        $this->expectExceptionMessage('Post with id: 5 not found');
-        $postRepository->get(5);
+        $this->expectExceptionMessage('Post with id: 50 not found');
+        $postRepository->get(50);
     }
     public function testItSavesPostToRepository(): void
     {
@@ -71,6 +74,9 @@ class CreatePostCommandTest extends TestCase
         public function get(int $id): Post
         {
             throw new PostNotFoundException("Post with id: $id not found");
+        }
+        public function delete(int $id): void
+        {
         }
         public function wasCalled(): bool
         {

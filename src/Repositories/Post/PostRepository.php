@@ -60,6 +60,24 @@ class PostRepository implements PostRepositoryInterface
             ->setId($postObj->id);
 
         return $post;
+    }
+    /**
+     * @throws PostNotFoundException
+     * @throws \Exception
+     */
+    public function delete(int $id): void
+    {
+        $statement = $this->connection->prepare(
+            "DELETE FROM post WHERE id = :postId"
+        );
 
+        $statement->execute([
+            'postId' => $id
+        ]);
+
+        if (!$statement->execute())
+        {
+            throw new PostNotFoundException("Post with id: $id not found");
+        }
     }
 }
