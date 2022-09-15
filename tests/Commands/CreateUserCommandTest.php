@@ -9,6 +9,7 @@ use Project\Argument\Argument;
 use Project\Exceptions\ArgumentException;
 use PHPUnit\Framework\TestCase;
 use Project\Repositories\User\UserRepositoryInterface;
+
 class CreateUserCommandTest extends TestCase
 {
     private function makeUserRepository(): UserRepositoryInterface

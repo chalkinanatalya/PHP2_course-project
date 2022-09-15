@@ -1,5 +1,6 @@
 <?php
 namespace Project\User;
+
 use Project\Traits\Id;
 class User implements UserInterface
 {

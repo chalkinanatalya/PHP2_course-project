@@ -4,6 +4,7 @@ namespace Test\ArgumentTest;
 use PHPUnit\Framework\TestCase;
 use Project\Argument\Argument;
 use Project\Exceptions\ArgumentException;
+
 final class ArgumentTest extends TestCase
 {
     public function testItReturnsArgumentValueName(): void
