@@ -3,9 +3,11 @@ use Project\Repositories\User\UserRepository;
 use Project\Repositories\Post\PostRepository;
 use Project\Repositories\Comment\CommentRepository;
 
-use Project\User\User;
-use Project\Blog\Post;
-use Project\Comment\Comment;
+use Project\Argument\Argument;
+use Project\Commands\UserCommand\CreateUserCommand;
+use Project\Exceptions\CommandException;
+use Project\Commands\BlogCommand\CreateBlogCommand;
+use Project\Commands\CommentCommand\CreateCommentCommand;
 
 require_once __DIR__ . '/autoload_runtime.php';
 
@@ -14,29 +16,31 @@ $userRepository = new UserRepository();
 $postRepository = new PostRepository();
 $commentRepository = new CommentRepository();
 
-if($argv[1] === 'user') 
-{
-    $user = new User($faker->firstName, $faker->lastName);
-    $userRepository->save($user);
 
-    print $user;
-}
+try {
+    if($argv[1] === 'user') 
+    {
+        $userCommand = new CreateUserCommand ($userRepository);
+        $userCommand->handle(Argument::fromArgv($argv));
+        echo 'Data is successfully written';
+    }
 
-if($argv[1] === 'post') 
-{
-    $user = $userRepository->get(1);
-    $post = new Post($user->getId(), $faker->realText($maxNbChars = 10, $indexSize = 2), $faker->realTextBetween($minNbChars = 50, $maxNbChars = 100, $indexSize = 2));
-    $postRepository->save($post);
+    if($argv[1] === 'post') 
+    {
+        $postCommand = new CreateBlogCommand ($postRepository);
+        $postCommand->handle(Argument::fromArgv($argv));
+        echo 'Data is successfully written';
+    }
+
+    if($argv[1] === 'comment') 
+    {
+        $commentCommand = new CreateCommentCommand($commentRepository);
+        $commentCommand->handle(Argument::fromArgv($argv));
+        echo 'Data is successfully written';
+    }
+
     
-    print $post;
-}
-
-if($argv[1] === 'comment') 
+} catch (CommandException $commandException)
 {
-    $user = $userRepository->get(1);
-    $post = $postRepository->get(2);
-    $comment = new Comment($post->getId(), $user->getId(), $faker->realTextBetween($minNbChars = 50, $maxNbChars = 200, $indexSize = 2));
-    $commentRepository->save($comment);
-
-    print $comment;
+    echo $commandException->getMessage();
 }
