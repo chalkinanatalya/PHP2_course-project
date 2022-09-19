@@ -2,7 +2,7 @@
 
 namespace Project\Repositories\User;
 
-use Project\User\User;
+use Project\Blog\User\User;
 interface UserRepositoryInterface
 {
     public function save(User $user): void;

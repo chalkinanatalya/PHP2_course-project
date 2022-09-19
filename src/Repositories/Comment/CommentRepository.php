@@ -5,7 +5,7 @@ namespace Project\Repositories\Comment;
 use Project\Connection\ConnectorInterface;
 use Project\Connection\DataBaseConnector;
 use Project\Exceptions\CommentNotFoundException;
-use Project\Comment\Comment;
+use Project\Blog\Comment\Comment;
 use PDO;
 
 

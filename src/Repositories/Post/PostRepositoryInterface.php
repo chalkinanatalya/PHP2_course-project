@@ -2,7 +2,7 @@
 
 namespace Project\Repositories\Post;
 
-use Project\Blog\Post;
+use Project\Blog\Post\Post;
 
 interface PostRepositoryInterface
 {

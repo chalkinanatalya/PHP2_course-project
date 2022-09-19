@@ -2,7 +2,7 @@
 
 namespace Project\Commands\CommentCommand;
 
-use Project\Comment\Comment;
+use Project\Blog\Comment\Comment;
 use Project\Argument\Argument;
 use Project\Repositories\Comment\CommentRepositoryInterface;
 
