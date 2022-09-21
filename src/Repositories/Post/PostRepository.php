@@ -5,7 +5,7 @@ namespace Project\Repositories\Post;
 use Project\Connection\ConnectorInterface;
 use Project\Connection\DataBaseConnector;
 use Project\Exceptions\PostNotFoundException;
-use Project\Blog\Post;
+use Project\Blog\Post\Post;
 use PDO;
 
 class PostRepository implements PostRepositoryInterface

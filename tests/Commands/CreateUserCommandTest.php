@@ -1,7 +1,7 @@
 <?php
 namespace Tests\Commands\UserCommand\CreateUserCommandTest;
 
-use Project\User\User;
+use Project\Blog\User\User;
 use Project\Commands\UserCommand\CreateUserCommand;
 use Project\Exceptions\UserNotFoundException;
 use Project\Exceptions\CommandException;

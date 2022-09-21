@@ -5,7 +5,7 @@ namespace Project\Commands\UserCommand;
 use Project\Exceptions\CommandException;
 use Project\Exceptions\UserNotFoundException;
 use Project\Repositories\User\UserRepositoryInterface;
-use Project\User\User;
+use Project\Blog\User\User;
 use Project\Argument\Argument;
 
 class CreateUserCommand implements CreateUserCommandInterface

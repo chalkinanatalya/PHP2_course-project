@@ -2,7 +2,7 @@
 
 namespace Project\Repositories\Comment;
 
-use Project\Comment\Comment;
+use Project\Blog\Comment\Comment;
 
 interface CommentRepositoryInterface
 {

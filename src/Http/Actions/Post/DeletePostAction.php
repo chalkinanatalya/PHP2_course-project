@@ -9,7 +9,7 @@ use Project\Exceptions\HttpException;
 use Project\Http\Request\Request;
 use Project\Http\Response\Response;
 use Project\Http\Response\SuccessfulResponse;
-use Project\Blog\Post;
+use Project\Blog\Post\Post;
 use Project\Repositories\Post\PostRepositoryInterface;
 
 class DeletePostAction implements ActionInterface

@@ -4,7 +4,7 @@ namespace Project\Repositories\User;
 use Project\Connection\ConnectorInterface;
 use Project\Connection\DataBaseConnector;
 use Project\Exceptions\UserNotFoundException;
-use Project\User\User;
+use Project\Blog\User\User;
 use PDO;
 
 

@@ -9,8 +9,8 @@ use Project\Exceptions\PostNotFoundException;
 use Project\Exceptions\UserNotFoundException;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Repositories\User\UserRepositoryInterface;
-use Project\Blog\Post;
-use Project\User\User;
+use Project\Blog\Post\Post;
+use Project\Blog\User\User;
 use PHPUnit\Framework\TestCase;
 
 class CreatePostActionTest extends TestCase

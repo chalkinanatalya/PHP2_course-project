@@ -1,7 +1,7 @@
 <?php
 namespace Tests\Commands\CommentCommand\CreateCommentCommandTest;
 
-use Project\Comment\Comment;
+use Project\Blog\Comment\Comment;
 use Project\Commands\CommentCommand\CreateCommentCommand;
 use Project\Argument\Argument;
 use Project\Exceptions\ArgumentException;

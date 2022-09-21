@@ -1,25 +1,22 @@
 <?php
 use Project\Http\Actions\Post\FindByIdAction;
 use Project\Http\Actions\Post\CreatePostAction;
+use Project\Http\Actions\Like\FindLikeAction;
+use Project\Http\Actions\Like\CreateLikeAction;
 use Project\Http\Actions\Post\DeletePostAction;
 use Project\Http\Actions\User\FindByEmailAction;
 use Project\Http\Actions\Comment\CreateCommentAction;
 use Project\Http\Response\ErrorResponse;
 use Project\Exceptions\HttpException;
 use Project\Http\Request\Request;
-use Project\Repositories\Comment\CommentRepository;
-use Project\Repositories\Post\PostRepository;
-use Project\Repositories\User\UserRepository;
 
-require_once __DIR__ . '/vendor/autoload.php';
+$container = require __DIR__ . '/bootstrap.php';
 
 $request = new Request(
     $_GET,
     $_SERVER,
     file_get_contents('php://input'),
 );
-
-$conten = file_get_contents('php://input');
 
 try {
     $path = $request->path();
@@ -37,38 +34,33 @@ try {
 
 $routes = [
     'GET' => [
-        '/user/show' => new FindByEmailAction(new UserRepository()),
-        '/post/show' => new FindByIdAction(new PostRepository()),
+        '/user/show' => FindByEmailAction::class,
+        '/post/show' => FindByIdAction::class,
+        '/like/show' => FindLikeAction::class,
     ],
     'POST' => [
-        '/post/create' => new CreatePostAction(
-            new PostRepository(),
-            new UserRepository()
-        ),
-        '/post/comment' => new CreateCommentAction(
-            new CommentRepository(),
-            new PostRepository(),
-            new UserRepository()
-        ),
+        '/post/create' => CreatePostAction::class,
+        '/post/comment' => CreateCommentAction::class,
+        '/post/like' => CreateLikeAction::class,
     ],
     'DELETE' => [
-        '/post' => new DeletePostAction(
-            new PostRepository()
-        ),
+        '/post' => DeletePostAction::class,
     ]
 ];
 
 if (!array_key_exists($method, $routes)) {
-    (new ErrorResponse('Not found'))->send();
+    (new ErrorResponse('Method not found'))->send();
     return;
 }
 
 if (!array_key_exists($path, $routes[$method])) {
-    (new ErrorResponse('Not found'))->send();
+    (new ErrorResponse('Path not found'))->send();
     return;
 }
 
-$action = $routes[$method][$path];
+$actionClassName = $routes[$method][$path];
+$action = $container->get($actionClassName);
+
 try {
     $response = $action->handle($request);
 } catch (Exception $e) {

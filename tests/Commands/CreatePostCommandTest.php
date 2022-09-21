@@ -1,8 +1,8 @@
 <?php
 namespace Tests\Commands\PostCommand\CreatePostCommandTest;
 
-use Project\Blog\Post;
-use Project\Commands\BlogCommand\CreateBlogCommand;
+use Project\Blog\Post\Post;
+use Project\Commands\PostCommand\CreatePostCommand;
 use Project\Argument\Argument;
 use Project\Exceptions\ArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -29,20 +29,20 @@ class CreatePostCommandTest extends TestCase
     }
     public function testItRequiresUserId(): void
     {
-        $command = new CreateBlogCommand($this->makePostRepository());
+        $command = new CreatePostCommand($this->makePostRepository());
         $this->expectExceptionMessage('No such argument: userId');
         $command->handle(new Argument(['title' => 'testTitle1', 'text' => 'testText1']));
     }
     public function testItRequiresTitle(): void
     {
-        $command = new CreateBlogCommand($this->makePostRepository());
+        $command = new CreatePostCommand($this->makePostRepository());
         $this->expectException(ArgumentException::class);
         $this->expectExceptionMessage('No such argument: title');
         $command->handle(new Argument(['userId' => '1', 'text' => 'testText2']));
     }
     public function testItRequiresText(): void
     {
-        $command = new CreateBlogCommand($this->makePostRepository());
+        $command = new CreatePostCommand($this->makePostRepository());
         $this->expectException(ArgumentException::class);
         $this->expectExceptionMessage('No such argument: text');
         $command->handle(new Argument(['userId' => '1','title' => 'testTitle2']));
@@ -84,7 +84,7 @@ class CreatePostCommandTest extends TestCase
         }
         };
 
-        $command = new CreateBlogCommand($postRepository);
+        $command = new CreatePostCommand($postRepository);
 
         $command->handle(new Argument([
             'userId' => '1',

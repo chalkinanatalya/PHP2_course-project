@@ -7,7 +7,7 @@ use Project\Http\Request\Request;
 use Project\Http\Response\SuccessfulResponse;
 use Project\Exceptions\UserNotFoundException;
 use Project\Repositories\User\UserRepositoryInterface;
-use Project\User\User;
+use Project\Blog\User\User;
 use PHPUnit\Framework\TestCase;
 
 class FindByEmailActionTest extends TestCase
