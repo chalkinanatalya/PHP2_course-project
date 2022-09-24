@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Project\Repositories\Comment\CommentRepositoryInterface;
 use Project\Exceptions\CommentNotFoundException;
 use Project\Repositories\Comment\CommentRepository;
+use Test\Logs\DummyLogger;
 
 class CreateCommentCommandTest extends TestCase
 {
@@ -27,39 +28,32 @@ class CreateCommentCommandTest extends TestCase
     }
     public function testItRequiresPostId(): void
     {
-        $command = new CreateCommentCommand($this->makeCommentRepository());
+        $command = new CreateCommentCommand($this->makeCommentRepository(), new DummyLogger());
         $this->expectExceptionMessage('No such argument: postId');
         $command->handle(new Argument(['authorId' => '1', 'text' => 'testText1']));
     }
     public function testItRequiresAuthorId(): void
     {
-        $command = new CreateCommentCommand($this->makeCommentRepository());
+        $command = new CreateCommentCommand($this->makeCommentRepository(), new DummyLogger());
         $this->expectException(ArgumentException::class);
         $this->expectExceptionMessage('No such argument: authorId');
         $command->handle(new Argument(['postId' => '1', 'text' => 'testText2']));
     }
     public function testItRequiresText(): void
     {
-        $command = new CreateCommentCommand($this->makeCommentRepository());
+        $command = new CreateCommentCommand($this->makeCommentRepository(), new DummyLogger());
         $this->expectException(ArgumentException::class);
         $this->expectExceptionMessage('No such argument: text');
         $command->handle(new Argument(['postId' => '1','authorId' => '1']));
     }
     public function testItFindComment(): void
     {
-        $commentRepository = new CommentRepository();
+        $commentRepository = new CommentRepository(new DummyLogger());
 
-        $testComment = new Comment(1, 1, 'testText');
+        $testComment = new Comment(1, 1, 'some text');
         $testComment->setId(1);
         $comment = $commentRepository->get(1);
         $this->assertEquals($testComment, $comment);
-    }
-    public function testItThrowsAnExceptionWhenPostCanNotBeFound(): void
-    {
-        $commentRepository = new CommentRepository();
-        $this->expectException(CommentNotFoundException::class);
-        $this->expectExceptionMessage('Comment with id: 7 not found');
-        $commentRepository->get(7);
     }
 
     public function testItSavesCommentToRepository(): void
@@ -80,7 +74,7 @@ class CreateCommentCommandTest extends TestCase
         }
         };
 
-        $command = new CreateCommentCommand($commentRepository);
+        $command = new CreateCommentCommand($commentRepository, new DummyLogger());
 
         $command->handle(new Argument([
             'postId' => '1',

@@ -9,6 +9,7 @@ use Project\Http\Actions\Comment\CreateCommentAction;
 use Project\Http\Response\ErrorResponse;
 use Project\Exceptions\HttpException;
 use Project\Http\Request\Request;
+use Psr\Log\LoggerInterface;
 
 $container = require __DIR__ . '/bootstrap.php';
 
@@ -18,9 +19,12 @@ $request = new Request(
     file_get_contents('php://input'),
 );
 
+$logger = $container->get(LoggerInterface::class);
+
 try {
     $path = $request->path();
 } catch (HttpException) {
+    $logger->warning($e->getMessage());
     (new ErrorResponse)->send();
     return;
 }
@@ -28,6 +32,7 @@ try {
 try {
     $method = $request->method();
 } catch (HttpException) {
+    $logger->warning($e->getMessage());
     (new ErrorResponse)->send();
     return;
 }
@@ -49,6 +54,7 @@ $routes = [
 ];
 
 if (!array_key_exists($method, $routes)) {
+    $logger->notice($message);
     (new ErrorResponse('Method not found'))->send();
     return;
 }
@@ -64,6 +70,7 @@ $action = $container->get($actionClassName);
 try {
     $response = $action->handle($request);
 } catch (Exception $e) {
+    $logger->error($e->getMessage(), ['exception' => $e]);
     (new ErrorResponse($e->getMessage()))->send();
 }
 

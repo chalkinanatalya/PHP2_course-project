@@ -5,16 +5,20 @@ use Project\Commands\UserCommand\CreateUserCommand;
 use Project\Exceptions\CommandException;
 use Project\Commands\PostCommand\CreatePostCommand;
 use Project\Commands\CommentCommand\CreateCommentCommand;
+use Psr\Log\LoggerInterface;
+
 
 require_once __DIR__ . '/autoload_runtime.php';
 $container = require __DIR__ . '/../bootstrap.php';
 
 $command = $container->get(CreateUserCommand::class);
+$logger = $container->get(LoggerInterface::class);
+
 
 try {
     $command->handle(Argument::fromArgv($argv));
 } catch (Exception $e) {
-    echo "{$e->getMessage()}\n";
+    $logger->error($e->getMessage(), ['exception' => $e]);
 }    
 
 // try {

@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Exceptions\PostNotFoundException;
 use Project\Repositories\Post\PostRepository;
+use Test\Logs\DummyLogger;
+
 class CreatePostCommandTest extends TestCase
 {
     private function makePostRepository(): PostRepositoryInterface
@@ -29,39 +31,32 @@ class CreatePostCommandTest extends TestCase
     }
     public function testItRequiresUserId(): void
     {
-        $command = new CreatePostCommand($this->makePostRepository());
+        $command = new CreatePostCommand($this->makePostRepository(), new DummyLogger());
         $this->expectExceptionMessage('No such argument: userId');
         $command->handle(new Argument(['title' => 'testTitle1', 'text' => 'testText1']));
     }
     public function testItRequiresTitle(): void
     {
-        $command = new CreatePostCommand($this->makePostRepository());
+        $command = new CreatePostCommand($this->makePostRepository(), new DummyLogger());
         $this->expectException(ArgumentException::class);
         $this->expectExceptionMessage('No such argument: title');
         $command->handle(new Argument(['userId' => '1', 'text' => 'testText2']));
     }
     public function testItRequiresText(): void
     {
-        $command = new CreatePostCommand($this->makePostRepository());
+        $command = new CreatePostCommand($this->makePostRepository(), new DummyLogger());
         $this->expectException(ArgumentException::class);
         $this->expectExceptionMessage('No such argument: text');
         $command->handle(new Argument(['userId' => '1','title' => 'testTitle2']));
     }
     public function testItFindPost(): void
     {
-        $postRepository = new PostRepository();
+        $postRepository = new PostRepository(new DummyLogger());
 
-        $testPost = new Post(1, 'testTitle', 'testText');
+        $testPost = new Post(1, 'some title', 'some text');
         $testPost->setId(1);
         $post = $postRepository->get(1);
         $this->assertEquals($testPost, $post);
-    }
-    public function testItThrowsAnExceptionWhenPostCanNotBeFound(): void
-    {
-        $postRepository = new PostRepository();
-        $this->expectException(PostNotFoundException::class);
-        $this->expectExceptionMessage('Post with id: 50 not found');
-        $postRepository->get(50);
     }
     public function testItSavesPostToRepository(): void
     {
@@ -84,7 +79,7 @@ class CreatePostCommandTest extends TestCase
         }
         };
 
-        $command = new CreatePostCommand($postRepository);
+        $command = new CreatePostCommand($postRepository, new DummyLogger());
 
         $command->handle(new Argument([
             'userId' => '1',

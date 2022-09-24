@@ -54,7 +54,6 @@ class Request
         return $this->server['REQUEST_METHOD'];
     }
 
-
     public function path(): string
     {
         if (!array_key_exists('REQUEST_URI', $this->server)) {

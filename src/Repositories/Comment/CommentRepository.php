@@ -4,16 +4,18 @@ namespace Project\Repositories\Comment;
 
 use Project\Connection\ConnectorInterface;
 use Project\Connection\DataBaseConnector;
-use Project\Exceptions\CommentNotFoundException;
 use Project\Blog\Comment\Comment;
 use PDO;
-
+use Psr\Log\LoggerInterface;
 
 class CommentRepository implements CommentRepositoryInterface
 {
     private PDO $connection;
 
-    public function __construct(private ?ConnectorInterface $connector = null)
+    public function __construct(
+        private LoggerInterface $logger,
+        private ?ConnectorInterface $connector = null
+    )
     {
         $this->connector = $connector ?? new DataBaseConnector();
         $this->connection = $this->connector->getConnection();
@@ -21,24 +23,25 @@ class CommentRepository implements CommentRepositoryInterface
 
     public function save(Comment $comment): void
     {
+        $authorId = $comment->getAuthorId();
+        $postId = $comment->getPostId();
+
         $statement = $this->connection->prepare(
             'INSERT INTO comment (post_id, author_id, text)
             VALUES (:post_id, :author_id, :text)'
         );
-
         $statement->execute(
             [
-                ':post_id' => $comment->getPostId(),
-                ':author_id' => $comment->getAuthorId(),
+                ':post_id' => $postId,
+                ':author_id' => $authorId,
                 ':text' => $comment->getText(),
             ]
         );
+        
+
+        $this->logger->info("Comment to $postId by $authorId created");
     }
 
-    /**
-     * @throws CommentNotFoundException
-     * @throws \Exception
-     */
     public function get(int $id): Comment
     {
         $statement = $this->connection->prepare(
@@ -53,7 +56,7 @@ class CommentRepository implements CommentRepositoryInterface
 
         if(!$commentObj)
         {
-            throw new CommentNotFoundException("Comment with id: $id not found");
+            $this->logger->warning("Comment with id: $id not found");
         }
 
         $comment = new Comment($commentObj->post_id, $commentObj->author_id, $commentObj->text);
