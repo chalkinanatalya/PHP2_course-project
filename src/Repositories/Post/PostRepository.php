@@ -7,12 +7,16 @@ use Project\Connection\DataBaseConnector;
 use Project\Exceptions\PostNotFoundException;
 use Project\Blog\Post\Post;
 use PDO;
+use Psr\Log\LoggerInterface;
 
 class PostRepository implements PostRepositoryInterface
 {
     private PDO $connection;
 
-    public function __construct(private ?ConnectorInterface $connector = null)
+    public function __construct(
+        private LoggerInterface $logger,
+        private ?ConnectorInterface $connector = null,
+    )
     {
         $this->connector = $connector ?? new DataBaseConnector();
         $this->connection = $this->connector->getConnection();
@@ -20,23 +24,24 @@ class PostRepository implements PostRepositoryInterface
 
     public function save(Post $post): void
     {
+        $authorId = $post->getAuthorId();
+        $title = $post->getTitle();
+
         $statement = $this->connection->prepare(
             'INSERT INTO post (author_id, title, text)
             VALUES (:author_id, :title, :text)'
         );
-
         $statement->execute(
             [
-                ':author_id' => $post->getAuthorId(),
-                ':title' => $post->getTitle(),
+                ':author_id' => $authorId,
+                ':title' => $title,
                 ':text' => $post->getText(),
             ]
         );
+
+        $this->logger->info("Post $authorId, $title created");
     }
-    /**
-     * @throws PostNotFoundException
-     * @throws \Exception
-     */
+
     public function get(int $id): Post
     {
         $statement = $this->connection->prepare(
@@ -51,7 +56,7 @@ class PostRepository implements PostRepositoryInterface
 
         if(!$postObj)
         {
-            throw new PostNotFoundException("Post with id: $id not found");
+            $this->logger->warning("Post with id: $id not found");
         }
 
         $post = new Post($postObj->author_id, $postObj->title, $postObj->text);

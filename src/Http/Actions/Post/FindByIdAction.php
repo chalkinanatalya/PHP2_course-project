@@ -9,11 +9,13 @@ use Project\Http\Response\Response;
 use Project\Http\Response\SuccessfulResponse;
 use Project\Exceptions\PostNotFoundException;
 use Project\Repositories\Post\PostRepositoryInterface;
+use Psr\Log\LoggerInterface;
 
 class FindByIdAction implements ActionInterface
 {
     public function __construct(
-        private PostRepositoryInterface $postRepository
+        private PostRepositoryInterface $postRepository,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -30,6 +32,8 @@ class FindByIdAction implements ActionInterface
     } catch (PostNotFoundException $e) {
         return new ErrorResponse($e->getMessage());
     }
+
+    $this->logger->info("Id found: $id");
 
     return new SuccessfulResponse([
         'title' => $post->getTitle(),

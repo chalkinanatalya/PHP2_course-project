@@ -4,16 +4,19 @@ namespace Project\Repositories\Like;
 
 use Project\Connection\ConnectorInterface;
 use Project\Connection\DataBaseConnector;
-use Project\Exceptions\LikeNotFoundException;
 use Project\Blog\Like\Like;
 use PDO;
+use Psr\Log\LoggerInterface;
 
 
 class LikeRepository implements LikeRepositoryInterface
 {
     private PDO $connection;
 
-    public function __construct(private ?ConnectorInterface $connector = null)
+    public function __construct(
+        private LoggerInterface $logger,
+        private ?ConnectorInterface $connector = null
+    )
     {
         $this->connector = $connector ?? new DataBaseConnector();
         $this->connection = $this->connector->getConnection();
@@ -21,6 +24,9 @@ class LikeRepository implements LikeRepositoryInterface
 
     public function save(Like $like): void
     {
+        $authorId = $like->getAuthorId();
+        $postId = $like->getPostId();
+
         $statement = $this->connection->prepare(
             'INSERT INTO like (post_id, author_id)
             VALUES (:post_id, :author_id)'
@@ -28,16 +34,14 @@ class LikeRepository implements LikeRepositoryInterface
 
         $statement->execute(
             [
-                ':post_id' => $like->getPostId(),
-                ':author_id' => $like->getAuthorId(),
+                ':post_id' => $postId,
+                ':author_id' => $authorId,
             ]
         );
+
+        $this->logger->info("Like to $postId by $authorId created");
     }
 
-    /**
-     * @throws LikeNotFoundException
-     * @throws \Exception
-     */
     public function get(int $postId, int $authorId): Like
     {
         $statement = $this->connection->prepare(
@@ -53,7 +57,7 @@ class LikeRepository implements LikeRepositoryInterface
 
         if(!$likeObj)
         {
-            throw new LikeNotFoundException("Like with post_id: $postId by author with id: $authorId not found");
+            $this->logger->warning("Like with post_id: $postId by author with id: $authorId not found");
         }
 
         $like = new Like($likeObj->post_id, $likeObj->author_id);

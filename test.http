@@ -1,6 +1,7 @@
-POST http://127.0.0.1:8000/post/like
+POST http://127.0.0.1:8000/post/create
 
 {
-"post_id": "4",
-"author_id": "1"
+"author_id": "1",
+"text": "some text2",
+"title": "some title2"
 }

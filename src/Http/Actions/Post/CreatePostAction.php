@@ -1,8 +1,6 @@
 <?php
 namespace Project\Http\Actions\Post;
 
-use Project\Exceptions\ArgumentException;
-use Project\Exceptions\UserNotFoundException;
 use Project\Http\Actions\ActionInterface;
 use Project\Http\Response\ErrorResponse;
 use Project\Exceptions\HttpException;
@@ -11,37 +9,25 @@ use Project\Http\Response\Response;
 use Project\Http\Response\SuccessfulResponse;
 use Project\Blog\Post\Post;
 use Project\Repositories\Post\PostRepositoryInterface;
-use Project\Repositories\User\UserRepositoryInterface;
+use Psr\Log\LoggerInterface;
+use Project\Http\Auth\IdentificationInterface;
 
 class CreatePostAction implements ActionInterface
 {
     public function __construct(
         private PostRepositoryInterface $postRepository,
-        private UserRepositoryInterface $userRepository,
+        private IdentificationInterface $identification,
+        private LoggerInterface $logger,
     ) {
     }
 
     public function handle(Request $request): Response
     {
-        try {
-            $authorId = $request->jsonBodyField('author_id');
-        } catch (HttpException | ArgumentException $e) {
-            return new ErrorResponse($e->getMessage());
-        }
-        
-        if (ctype_alpha($authorId)) {
-            return new ErrorResponse('author_id must be int');
-        }
-
-        try {
-            $this->userRepository->get($authorId);
-        } catch (UserNotFoundException $e) {
-            return new ErrorResponse($e->getMessage());
-        }
+        $author = $this->identification->user($request);
 
         try {
             $post = new Post(
-                $authorId,
+                $author->getId(),
                 $request->jsonBodyField('title'),
                 $request->jsonBodyField('text'),
             );
@@ -50,6 +36,7 @@ class CreatePostAction implements ActionInterface
         }
         
         $this->postRepository->save($post);
+        $this->logger->info("Post created: $post");
 
         return new SuccessfulResponse([
             'title' => $post->getTitle(),

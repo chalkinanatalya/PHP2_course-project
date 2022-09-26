@@ -1,6 +1,7 @@
 <?php
 namespace Project\Blog\Post;
 use Project\Traits\Id;
+
 class Post implements PostInterface
 {
     use Id;

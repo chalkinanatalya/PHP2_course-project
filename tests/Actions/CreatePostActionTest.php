@@ -7,11 +7,14 @@ use Project\Http\Request\Request;
 use Project\Http\Response\SuccessfulResponse;
 use Project\Exceptions\PostNotFoundException;
 use Project\Exceptions\UserNotFoundException;
+use Project\Exceptions\AuthException;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Repositories\User\UserRepositoryInterface;
 use Project\Blog\Post\Post;
 use Project\Blog\User\User;
 use PHPUnit\Framework\TestCase;
+use Test\Logs\DummyLogger;
+use Project\Http\Auth\JsonBodyIdIdentification;
 
 class CreatePostActionTest extends TestCase
 {
@@ -21,11 +24,12 @@ class CreatePostActionTest extends TestCase
     */
     public function testItReturnsSuccessfulResponse(): void
     {
-        $testBody = array('author_id' => "1", 'text' => 'some text', 'title' => 'some title');
+        $testBody = array('author_id' => '1', 'text' => 'some text', 'title' => 'some title');
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $action = new CreatePostAction($postRepository, $userRepository);
+        $identification = new JsonBodyIdIdentification($userRepository);
+        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
 
         $response = $action->handle($request);
         $this->assertInstanceOf(SuccessfulResponse::class, $response);
@@ -42,11 +46,12 @@ class CreatePostActionTest extends TestCase
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $action = new CreatePostAction($postRepository, $userRepository);
+        $identification = new JsonBodyIdIdentification($userRepository);
+        $this->expectException(AuthException::class);
+        $this->expectExceptionMessage('author_id must be int');
 
+        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
         $response = $action->handle($request);
-        $this->assertInstanceOf(ErrorResponse::class, $response);
-        $this->expectOutputString('{"success":false,"reason":"author_id must be int"}');
         $response->send();
     }
     /**
@@ -59,11 +64,12 @@ class CreatePostActionTest extends TestCase
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $action = new CreatePostAction($postRepository, $userRepository);
+        $identification = new JsonBodyIdIdentification($userRepository);
+        $this->expectException(AuthException::class);
+        $this->expectExceptionMessage('No user with such id');
 
+        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
         $response = $action->handle($request);
-        $this->assertInstanceOf(ErrorResponse::class, $response);
-        $this->expectOutputString('{"success":false,"reason":"No user with such id"}');
         $response->send();
     }
     /**
@@ -76,7 +82,8 @@ class CreatePostActionTest extends TestCase
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $action = new CreatePostAction($postRepository, $userRepository);
+        $identification = new JsonBodyIdIdentification($userRepository);
+        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
 
         $response = $action->handle($request);
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -93,11 +100,12 @@ class CreatePostActionTest extends TestCase
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $action = new CreatePostAction($postRepository, $userRepository);
+        $identification = new JsonBodyIdIdentification($userRepository);
+        $this->expectException(AuthException::class);
+        $this->expectExceptionMessage('No such field: author_id');
 
+        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
         $response = $action->handle($request);
-        $this->assertInstanceOf(ErrorResponse::class, $response);
-        $this->expectOutputString('{"success":false,"reason":"No such field: author_id"}');
         $response->send();
     }
 
@@ -139,7 +147,9 @@ class CreatePostActionTest extends TestCase
             public function get(int $id): User
             {
                 if($id === 1) {
-                    return new User('Ivan', 'Ivanov','test1@test.com');
+                    $user = new User('Ivan', 'Ivanov','test7@test.com');
+                    $user->setId(1);
+                    return $user;
                 } else {
                     throw new UserNotFoundException("No user with such id");
                 }
