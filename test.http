@@ -1,7 +1,8 @@
-POST http://127.0.0.1:8000/post/like
+POST http://127.0.0.1:8000/post/create
 Authorization: Bearer 692e947cd0492544345eed077fee318f5c60c2d8329bc9c3a68a58eb9e6d05f68a7119ab5e3cb74e
 
 {
-"post_id": "3",
-"author_id": "5"
+"author_id": "1",
+"text": "some text",
+"title": "some title"
 }

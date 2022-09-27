@@ -22,6 +22,29 @@ class AuthTokenRepository implements AuthTokenRepositoryInterface
         $this->connector = $connector ?? new DataBaseConnector();
         $this->connection = $this->connector->getConnection();
     }
+
+    public function update(AuthToken $token): void
+    {
+        $currentDate = new DateTimeImmutable();
+        $query = <<<'SQL'
+            UPDATE tokens
+            SET expires_on = :expires_on
+            WHERE email = :email;
+        SQL;
+        
+        try {
+            $statement = $this->connection->prepare($query);
+            $statement->execute([
+                ':email' => (string)$token->email(),
+                ':expires_on' => $token->expiresOn()
+                    ->format(DateTimeInterface::ATOM),
+            ]);
+        } catch (PDOException $e) {
+            throw new AuthTokenRepositoryException(
+                $e->getMessage(), (int)$e->getCode(), $e
+            );
+        }
+    }
     public function save(AuthToken $authToken): void
     {
         $query = <<<'SQL'
