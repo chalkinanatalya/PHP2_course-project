@@ -50,7 +50,7 @@ class FindByEmailActionTest extends TestCase
     public function testItReturnsSuccessfulResponse(): void
     {
         $request = new Request(['email' => 'test@test.com'], [], '');
-        $userRepository = $this->userRepository([new User('Ivan','Ivan','test@test.com'),]);
+        $userRepository = $this->userRepository([new User('Ivan','Ivan','test@test.com', '123'),]);
         $action = new FindByEmailAction($userRepository);
         $response = $action->handle($request);
 
@@ -76,7 +76,7 @@ class FindByEmailActionTest extends TestCase
                 throw new UserNotFoundException("Not found");
             }
 
-            public function findUserByEmail(string $email): User
+            public function getByEmail(string $email): User
             {
                 foreach ($this->users as $user) {
                     if ($user instanceof User && $email === $user->getEmail())

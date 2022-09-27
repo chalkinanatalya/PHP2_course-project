@@ -56,7 +56,9 @@ class PostRepository implements PostRepositoryInterface
 
         if(!$postObj)
         {
-            $this->logger->warning("Post with id: $id not found");
+            $warning = "Post with id: $id not found";
+            $this->logger->warning($warning);
+            throw new PostNotFoundException($warning);
         }
 
         $post = new Post($postObj->author_id, $postObj->title, $postObj->text);

@@ -26,7 +26,7 @@ class FindByEmailAction implements ActionInterface
     }
 
     try {
-        $user = $this->userRepository->findUserByEmail($email);
+        $user = $this->userRepository->getByEmail($email);
     } catch (UserNotFoundException $e) {
         return new ErrorResponse($e->getMessage());
     }

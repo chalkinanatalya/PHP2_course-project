@@ -15,6 +15,7 @@ use Project\Blog\Like\Like;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Repositories\User\UserRepositoryInterface;
 use Project\Repositories\Like\LikeRepositoryInterface;
+use Project\Http\Auth\TokenAuthenticationInterface;
 
 class CreateLikeAction implements ActionInterface
 {
@@ -22,6 +23,7 @@ class CreateLikeAction implements ActionInterface
         private LikeRepositoryInterface $likeRepository,
         private PostRepositoryInterface $postRepository,
         private UserRepositoryInterface $userRepository,
+        private TokenAuthenticationInterface $authentication,
     ) {
     }
 
@@ -32,6 +34,12 @@ class CreateLikeAction implements ActionInterface
             $postId = $request->jsonBodyField('post_id');
         } catch (HttpException | ArgumentException $e) {
             return new ErrorResponse($e->getMessage());
+        }
+
+        $author = $this->authentication->user($request);
+        if (strval($author->getId()) !== $authorId)
+        {
+            return new ErrorResponse('Authorization error');
         }
 
         if (ctype_alpha($authorId)) {

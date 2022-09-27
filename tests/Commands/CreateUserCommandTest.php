@@ -23,9 +23,9 @@ class CreateUserCommandTest extends TestCase
             {
                 throw new UserNotFoundException("User with id: $id not found");
             }
-            public function findUserByEmail(string $email): User
+            public function getByEmail(string $email): User
             {
-                return new User('Ivan', 'Ivanov','test7@test.com');
+                return new User('Ivan', 'Ivanov','test7@test.com', '1234');
             }
             public function mapUser(object $userObj): User
             {
@@ -67,7 +67,7 @@ class CreateUserCommandTest extends TestCase
         {
             throw new UserNotFoundException("Not found");
         }
-        public function findUserByEmail(string $email): User
+        public function getByEmail(string $email): User
         {
             throw new UserNotFoundException("User not found");
         }
@@ -91,5 +91,21 @@ class CreateUserCommandTest extends TestCase
 
         $this->assertTrue($userRepository->wasCalled());
     }
+
+    public function testItRequiresPassword(): void
+    {
+        $command = new CreateUserCommand(
+        $this->makeUserRepository(),
+        new DummyLogger()
+        );
+
+        $this->expectException(ArgumentsException::class);
+        $this->expectExceptionMessage('No such argument: password');
+        $command->handle(new Argument([
+        'username' => 'Ivan',
+        ]));
+    }
 }
+
+
     
