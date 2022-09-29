@@ -7,6 +7,7 @@ use Project\Connection\DataBaseConnector;
 use Project\Blog\Comment\Comment;
 use PDO;
 use Psr\Log\LoggerInterface;
+use Project\Exceptions\CommentNotFoundException;
 
 class CommentRepository implements CommentRepositoryInterface
 {
@@ -56,7 +57,9 @@ class CommentRepository implements CommentRepositoryInterface
 
         if(!$commentObj)
         {
-            $this->logger->warning("Comment with id: $id not found");
+            $warning = "Comment with id: $id not found";
+            $this->logger->warning($warning);
+            throw new CommentNotFoundException($warning);
         }
 
         $comment = new Comment($commentObj->post_id, $commentObj->author_id, $commentObj->text);

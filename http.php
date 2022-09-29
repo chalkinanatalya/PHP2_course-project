@@ -6,6 +6,8 @@ use Project\Http\Actions\Like\CreateLikeAction;
 use Project\Http\Actions\Post\DeletePostAction;
 use Project\Http\Actions\User\FindByEmailAction;
 use Project\Http\Actions\Comment\CreateCommentAction;
+use Project\Http\Actions\Auth\LogIn;
+use Project\Http\Actions\Auth\LogOut;
 use Project\Http\Response\ErrorResponse;
 use Project\Exceptions\HttpException;
 use Project\Http\Request\Request;
@@ -44,6 +46,8 @@ $routes = [
         '/like/show' => FindLikeAction::class,
     ],
     'POST' => [
+        '/login' => LogIn::class,
+        '/logout' => LogOut::class,
         '/post/create' => CreatePostAction::class,
         '/post/comment' => CreateCommentAction::class,
         '/post/like' => CreateLikeAction::class,
@@ -72,6 +76,7 @@ try {
 } catch (Exception $e) {
     $logger->error($e->getMessage(), ['exception' => $e]);
     (new ErrorResponse($e->getMessage()))->send();
+    return;
 }
 
 $response->send();

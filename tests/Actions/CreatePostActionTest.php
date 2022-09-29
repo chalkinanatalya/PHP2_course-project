@@ -147,7 +147,7 @@ class CreatePostActionTest extends TestCase
             public function get(int $id): User
             {
                 if($id === 1) {
-                    $user = new User('Ivan', 'Ivanov','test7@test.com');
+                    $user = new User('Ivan', 'Ivanov','test7@test.com', '123');
                     $user->setId(1);
                     return $user;
                 } else {
@@ -155,7 +155,7 @@ class CreatePostActionTest extends TestCase
                 }
             }
 
-            public function findUserByEmail(string $email): User
+            public function getByEmail(string $email): User
             {
                 foreach ($this->users as $user) {
                     if ($user instanceof User && $email === $user->getEmail())

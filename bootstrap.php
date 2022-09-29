@@ -1,18 +1,31 @@
 <?php
 
 use Project\Container\DIContainer;
-use Project\Repositories\Post\PostRepositoryInterface;
+
 use Project\Repositories\Post\PostRepository;
+use Project\Repositories\Post\PostRepositoryInterface;
+
 use Project\Repositories\User\UserRepository;
 use Project\Repositories\User\UserRepositoryInterface;
+
 use Project\Repositories\Comment\CommentRepository;
 use Project\Repositories\Comment\CommentRepositoryInterface;
+
 use Project\Repositories\Like\LikeRepository;
 use Project\Repositories\Like\LikeRepositoryInterface;
+
 use Project\Connection\ConnectorInterface;
 use Project\Connection\DataBaseConnector;
-use Project\Http\Auth\IdentificationInterface;
-use Project\Http\Auth\JsonBodyIdIdentification;
+
+use Project\Http\Auth\PasswordAuthenticationInterface;
+use Project\Http\Auth\PasswordAuthentication;
+
+use Project\Http\Auth\TokenAuthenticationInterface;
+use Project\Http\Auth\BearerTokenAuthentication;
+
+use Project\Repositories\AuthToken\AuthTokenRepositoryInterface;
+use Project\Repositories\AuthToken\AuthTokenRepository;
+
 use Psr\Log\LoggerInterface;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
@@ -54,8 +67,18 @@ $container->bind(
 );
 
 $container->bind(
-    IdentificationInterface::class,
-    JsonBodyIdIdentification::class
+    PasswordAuthenticationInterface::class,
+    PasswordAuthentication::class
+);
+
+$container->bind(
+    AuthTokenRepositoryInterface::class,
+    AuthTokenRepository::class
+);
+
+$container->bind(
+    TokenAuthenticationInterface::class,
+    BearerTokenAuthentication::class
 );
 
 $logger = (new Logger('blog'));

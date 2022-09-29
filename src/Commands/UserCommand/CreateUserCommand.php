@@ -24,19 +24,30 @@ class CreateUserCommand implements CreateUserCommandInterface
         $firstName = $argument->get('firstName');
         $lastName = $argument->get('lastName');
         $email = $argument->get('email');
+        $password = $argument->get('password');
 
         if($this->userExists($email))
         {
-            $this->logger->warning("User already exists: $email");
+            $warning = "User already exists: $email";
+            $this->logger->warning($warning);
+            throw new CommandException($warning);
         }
 
-        $this->userRepository->save(new User($firstName, $lastName, $email));
+        $user = User::createFrom(
+            $firstName,
+            $lastName,
+            $email,
+            $password
+        );
+            
+
+        $this->userRepository->save($user);
     }
 
     private function userExists(string $email)
     {
         try {
-            $this->userRepository->findUserByEmail($email);
+            $this->userRepository->getByEmail($email);
         } catch (UserNotFoundException $exception)
         {
             return false;

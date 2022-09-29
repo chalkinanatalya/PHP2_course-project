@@ -13,6 +13,7 @@ use Project\Blog\Comment\Comment;
 use Project\Repositories\Comment\CommentRepositoryInterface;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Repositories\User\UserRepositoryInterface;
+use Project\Http\Auth\TokenAuthenticationInterface;
 
 class CreateCommentAction implements ActionInterface
 {
@@ -20,6 +21,7 @@ class CreateCommentAction implements ActionInterface
         private CommentRepositoryInterface $commentRepository,
         private PostRepositoryInterface $postRepository,
         private UserRepositoryInterface $userRepository,
+        private TokenAuthenticationInterface $authentication,
     ) {
     }
 

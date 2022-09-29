@@ -6,7 +6,7 @@ use Project\Connection\DataBaseConnector;
 use Project\Blog\User\User;
 use PDO;
 use Psr\Log\LoggerInterface;
-
+use Project\Exceptions\UserNotFoundException;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -25,15 +25,17 @@ class UserRepository implements UserRepositoryInterface
         $firstName = $user->getFirstName();
         $lastName = $user->getLastName();
         $email = $user->getEmail();
+        $password = $user->getHashedPassword();
 
         $statement = $this->connection->prepare(
-            'INSERT INTO user (first_name, last_name, email)
-            VALUES (:first_name, :last_name, :email)'
+            'INSERT INTO user (first_name, last_name, email, password)
+            VALUES (:first_name, :last_name, :email, :password)'
         );
         $statement->execute([
             ':first_name' => $firstName,
             ':last_name' => $lastName,
             ':email' => $email,
+            ':password' => $password
         ]);
         
         $this->logger->info("User $firstName $lastName, $email created");
@@ -53,13 +55,15 @@ class UserRepository implements UserRepositoryInterface
 
         if(!$userObj)
         {
-            $this->logger->warning("User with id: $id not found");
+            $warning = "User with id: $id not found";
+            $this->logger->warning($warning);
+            throw new UserNotFoundException($warning);
         }
 
         return $this->mapUser($userObj);
     }
 
-    public function findUserByEmail(string $email): User
+    public function getByEmail(string $email): User
     {
         $statement = $this->connection->prepare(
             "select * from user where email = :email"
@@ -73,7 +77,9 @@ class UserRepository implements UserRepositoryInterface
 
         if(!$userObj)
         {
-            $this->logger->warning("User with email: $email not found");
+            $warning = "User with email: $email not found";
+            $this->logger->warning($warning);
+            throw new UserNotFoundException($warning);
         }
 
         return $this->mapUser($userObj);
@@ -82,13 +88,11 @@ class UserRepository implements UserRepositoryInterface
 
     public function mapUser(object $userObj): User
     {
-
-        $user = new User($userObj->first_name, $userObj->last_name, $userObj->email);
+        $user = new User($userObj->first_name, $userObj->last_name, $userObj->email, $userObj->password);
 
         $user->setId($userObj->id);
 
         return $user;
     }
-
     
 }

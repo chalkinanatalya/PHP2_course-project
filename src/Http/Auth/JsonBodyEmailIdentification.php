@@ -8,7 +8,7 @@ use Project\Exceptions\HttpException;
 use Project\Exceptions\AuthException;
 use Project\Exceptions\UserNotFoundException;
 
-class JsonBodyEmailIdentification implements IdentificationInterface
+class JsonBodyEmailIdentification implements AuthenticationInterface
 {
     public function __construct(
     private UserRepositoryInterface $userRepository
@@ -22,7 +22,7 @@ class JsonBodyEmailIdentification implements IdentificationInterface
             throw new AuthException($e->getMessage());
         }
         try {
-            return $this->userRepository->findUserByEmail($email);
+            return $this->userRepository->getByEmail($email);
         } catch (UserNotFoundException $e) {
             throw new AuthException($e->getMessage());
         }

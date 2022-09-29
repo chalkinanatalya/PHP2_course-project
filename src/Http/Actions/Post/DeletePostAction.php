@@ -9,11 +9,13 @@ use Project\Http\Response\Response;
 use Project\Http\Response\SuccessfulResponse;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Psr\Log\LoggerInterface;
+use Project\Http\Auth\TokenAuthenticationInterface;
 
 class DeletePostAction implements ActionInterface
 {
     public function __construct(
         private PostRepositoryInterface $postRepository,
+        private TokenAuthenticationInterface $authentication,
         private LoggerInterface $logger,
     ) {
     }

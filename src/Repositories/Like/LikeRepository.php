@@ -7,6 +7,7 @@ use Project\Connection\DataBaseConnector;
 use Project\Blog\Like\Like;
 use PDO;
 use Psr\Log\LoggerInterface;
+use Project\Exceptions\LikeNotFoundException;
 
 
 class LikeRepository implements LikeRepositoryInterface
@@ -57,7 +58,9 @@ class LikeRepository implements LikeRepositoryInterface
 
         if(!$likeObj)
         {
-            $this->logger->warning("Like with post_id: $postId by author with id: $authorId not found");
+            $warning = "Like with post_id: $postId by author with id: $authorId not found";
+            $this->logger->warning($warning);
+            throw new LikeNotFoundException($warning);
         }
 
         $like = new Like($likeObj->post_id, $likeObj->author_id);

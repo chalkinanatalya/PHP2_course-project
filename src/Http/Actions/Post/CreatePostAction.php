@@ -10,20 +10,25 @@ use Project\Http\Response\SuccessfulResponse;
 use Project\Blog\Post\Post;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Psr\Log\LoggerInterface;
-use Project\Http\Auth\IdentificationInterface;
+use Project\Exceptions\AuthException;
+use Project\Http\Auth\TokenAuthenticationInterface;
 
 class CreatePostAction implements ActionInterface
 {
     public function __construct(
         private PostRepositoryInterface $postRepository,
-        private IdentificationInterface $identification,
+        private TokenAuthenticationInterface $authentication,
         private LoggerInterface $logger,
     ) {
     }
 
     public function handle(Request $request): Response
     {
-        $author = $this->identification->user($request);
+        $author = $this->authentication->user($request);
+        if (strval($author->getId()) !== $request->jsonBodyField('author_id'))
+        {
+            return new ErrorResponse('Authorization error');
+        }
 
         try {
             $post = new Post(
@@ -32,6 +37,12 @@ class CreatePostAction implements ActionInterface
                 $request->jsonBodyField('text'),
             );
         } catch (HttpException $e) {
+            return new ErrorResponse($e->getMessage());
+        }
+
+        try {
+            $user = $this->authentication->user($request);
+        } catch (AuthException $e) {
             return new ErrorResponse($e->getMessage());
         }
         

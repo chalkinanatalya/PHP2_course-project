@@ -8,7 +8,8 @@ class User implements UserInterface
     public function __construct(
         private string $firstName,
         private string $lastName,
-        private string $email
+        private string $email, 
+        private string $hashedPassword,
     ) {
     }
     public function __toString()
@@ -29,6 +30,37 @@ class User implements UserInterface
     public function getEmail(): string
     {
         return $this->email;
+    }
+
+    public function getHashedPassword(): string
+    {
+        return $this->hashedPassword;
+    }
+
+    private static function hash(string $password, $email): string
+    {
+    return hash('sha256', $email . $password);
+    }
+
+    public function checkPassword(string $password): bool
+    {
+        return $this->hashedPassword
+        === self::hash($password, $this->email);
+    }
+
+    public static function createFrom(
+        string $firstName,
+        string $lastName,
+        string $email,
+        string $password,
+        ): self
+    {
+    return new self(
+        $firstName,
+        $lastName,
+        $email,
+        self::hash($password, $email),
+        );
     }
 
 }
