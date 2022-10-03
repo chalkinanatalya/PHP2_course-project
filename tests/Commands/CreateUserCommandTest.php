@@ -3,12 +3,16 @@ namespace Tests\Commands\UserCommand\CreateUserCommandTest;
 
 use Project\Blog\User\User;
 use Project\Commands\UserCommand\CreateUserCommand;
+use Project\Console\User\CreateUser;
 use Project\Exceptions\UserNotFoundException;
 use Project\Argument\Argument;
-use Project\Exceptions\ArgumentException;
 use PHPUnit\Framework\TestCase;
 use Project\Repositories\User\UserRepositoryInterface;
 use Test\Logs\DummyLogger;
+
+use Symfony\Component\Console\Exception\RuntimeException;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class CreateUserCommandTest extends TestCase
 {
@@ -35,24 +39,45 @@ class CreateUserCommandTest extends TestCase
     }
     public function testItRequiresLastName(): void
     {
-        $command = new CreateUserCommand($this->makeUserRepository(), new DummyLogger());
-        $this->expectException(ArgumentException::class);
-        $this->expectExceptionMessage('No such argument: lastName');
-        $command->handle(new Argument(['firstName' => 'Ivan']));
+        $command = new CreateUser($this->makeUserRepository());
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Not enough arguments (missing: "lastName").');
+        $command->run(
+            new ArrayInput([
+                'firstName' => 'Ivan',
+                'email' => 'test9test.com',
+                'password' => 'some_password',
+            ]),
+            new NullOutput()
+        );
     }
     public function testItRequiresFirstName(): void
     {
-        $command = new CreateUserCommand($this->makeUserRepository(), new DummyLogger());
-        $this->expectException(ArgumentException::class);
-        $this->expectExceptionMessage('No such argument: firstName');
-        $command->handle(new Argument(['lastName' => 'Ivan']));
+        $command = new CreateUser($this->makeUserRepository());
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Not enough arguments (missing: "firstName").');
+        $command->run(
+            new ArrayInput([
+                'lastName' => 'Ivan',
+                'email' => 'test9test.com',
+                'password' => 'some_password',
+            ]),
+            new NullOutput()
+        );
     }
     public function testItRequiresEmail(): void
     {
-        $command = new CreateUserCommand($this->makeUserRepository(), new DummyLogger());
-        $this->expectException(ArgumentException::class);
-        $this->expectExceptionMessage('No such argument: email');
-        $command->handle(new Argument(['lastName' => 'Ivanov','firstName' => 'Ivan']));
+        $command = new CreateUser($this->makeUserRepository());
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Not enough arguments (missing: "email").');
+        $command->run(
+            new ArrayInput([
+                'firstName' => 'Ivan',
+                'lastName' => 'Ivanov',
+                'password' => 'some_password',
+            ]),
+            new NullOutput()
+        );
     }
 
     public function testItSavesUserToRepository(): void
@@ -82,11 +107,11 @@ class CreateUserCommandTest extends TestCase
         };
 
         $command = new CreateUserCommand($userRepository, new DummyLogger());
-
         $command->handle(new Argument([
             'firstName' => 'Ivan',
             'lastName' => 'Nikitin',
             'email' => 'test9test.com',
+            'password' => '1234',
         ]));
 
         $this->assertTrue($userRepository->wasCalled());
@@ -94,16 +119,17 @@ class CreateUserCommandTest extends TestCase
 
     public function testItRequiresPassword(): void
     {
-        $command = new CreateUserCommand(
-        $this->makeUserRepository(),
-        new DummyLogger()
+        $command = new CreateUser($this->makeUserRepository());
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Not enough arguments (missing: "password").');
+        $command->run(
+            new ArrayInput([
+                'firstName' => 'Ivan',
+                'lastName' => 'Ivanov',
+                'email' => 'test9@test.com',
+            ]),
+            new NullOutput()
         );
-
-        $this->expectException(ArgumentsException::class);
-        $this->expectExceptionMessage('No such argument: password');
-        $command->handle(new Argument([
-        'username' => 'Ivan',
-        ]));
     }
 }
 

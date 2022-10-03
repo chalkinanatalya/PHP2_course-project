@@ -27,6 +27,10 @@ class CreatePostCommandTest extends TestCase
             public function delete(int $id): void
             {
             }
+            public function getByData(object $post): Post
+            {
+                throw new PostNotFoundException("Post not found");
+            }
         };
     }
     public function testItRequiresUserId(): void
@@ -53,9 +57,9 @@ class CreatePostCommandTest extends TestCase
     {
         $postRepository = new PostRepository(new DummyLogger());
 
-        $testPost = new Post(1, 'some title', 'some text');
-        $testPost->setId(1);
-        $post = $postRepository->get(1);
+        $testPost = new Post(6, 'some title', 'some text');
+        $testPost->setId(2);
+        $post = $postRepository->get(2);
         $this->assertEquals($testPost, $post);
     }
     public function testItSavesPostToRepository(): void
@@ -72,6 +76,10 @@ class CreatePostCommandTest extends TestCase
         }
         public function delete(int $id): void
         {
+        }
+        public function getByData(object $post): Post
+        {
+            throw new PostNotFoundException("Post not found");
         }
         public function wasCalled(): bool
         {

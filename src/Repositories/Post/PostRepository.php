@@ -2,6 +2,7 @@
 
 namespace Project\Repositories\Post;
 
+use PDOException;
 use Project\Connection\ConnectorInterface;
 use Project\Connection\DataBaseConnector;
 use Project\Exceptions\PostNotFoundException;
@@ -53,7 +54,6 @@ class PostRepository implements PostRepositoryInterface
         ]);
 
         $postObj = $statement->fetch(PDO::FETCH_OBJ);
-
         if(!$postObj)
         {
             $warning = "Post with id: $id not found";
@@ -62,29 +62,55 @@ class PostRepository implements PostRepositoryInterface
         }
 
         $post = new Post($postObj->author_id, $postObj->title, $postObj->text);
-
         $post
             ->setId($postObj->id);
 
         return $post;
     }
+    public function getByData(object $post): Post
+    {
+        $statement = $this->connection->prepare(
+            "SELECT * FROM post WHERE author_id = :author_id AND title = :title AND text = :text"
+        );
+        $statement->execute([
+            'author_id' => $post->getAuthorId(),
+            'title' => $post->getTitle(),
+            'text' => $post->getText(),
+        ]);
+
+        $postObj = $statement->fetch(PDO::FETCH_OBJ);
+
+        if(!$postObj)
+        {
+            $warning = "Post with not found";
+            $this->logger->warning($warning);
+            throw new PostNotFoundException($warning);
+        }
+
+        return $this->mapUser($postObj);
+
+    }
+    public function mapUser(object $postObj): Post
+    {
+        $post = new Post($postObj->author_id, $postObj->title, $postObj->text);
+        $post->setId($postObj->id);
+        return $post;
+    }
+
     /**
      * @throws PostNotFoundException
      * @throws \Exception
      */
-    public function delete(int $id): void
+    public function delete( $id): void
     {
-        $statement = $this->connection->prepare(
-            "DELETE FROM post WHERE id = :postId"
-        );
-
-        $statement->execute([
-            'postId' => $id
-        ]);
-
-        if (!$statement->execute())
-        {
-            throw new PostNotFoundException("Post with id: $id not found");
+        try {
+            $statement = $this->connection->prepare('DELETE FROM post WHERE id = ?');
+            $statement->execute([(string)$id]);
+        } catch (PDOException $e) {
+            throw new PostNotFoundException(
+                $e->getMessage(), (int)$e->getCode(), $e
+            );
         }
     }
+    
 }

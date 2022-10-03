@@ -17,10 +17,10 @@ class Request
     {
         try {
             $data = json_decode(
-            $this->body,
-            associative: true,
-            flags: JSON_THROW_ON_ERROR
-        );
+                $this->body,
+                associative: true,
+                flags: JSON_THROW_ON_ERROR
+            );
         } catch (JsonException) {
             throw new HttpException("Cannot decode json body");
         }
