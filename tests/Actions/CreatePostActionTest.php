@@ -1,13 +1,17 @@
 <?php
 namespace Test\Actions;
 
+use DateTimeImmutable;
+use Project\AuthToken\AuthToken;
 use Project\Http\Actions\Post\CreatePostAction;
+use Project\Http\Auth\BearerTokenAuthentication;
 use Project\Http\Response\ErrorResponse;
 use Project\Http\Request\Request;
 use Project\Http\Response\SuccessfulResponse;
 use Project\Exceptions\PostNotFoundException;
 use Project\Exceptions\UserNotFoundException;
 use Project\Exceptions\AuthException;
+use Project\Repositories\AuthToken\AuthTokenRepository;
 use Project\Repositories\Post\PostRepositoryInterface;
 use Project\Repositories\User\UserRepositoryInterface;
 use Project\Blog\Post\Post;
@@ -15,6 +19,7 @@ use Project\Blog\User\User;
 use PHPUnit\Framework\TestCase;
 use Test\Logs\DummyLogger;
 use Project\Http\Auth\JsonBodyIdIdentification;
+use Test\RequestTEst;
 
 class CreatePostActionTest extends TestCase
 {
@@ -24,12 +29,21 @@ class CreatePostActionTest extends TestCase
     */
     public function testItReturnsSuccessfulResponse(): void
     {
-        $testBody = array('author_id' => '1', 'text' => 'some text', 'title' => 'some title');
-        $request = new Request([], [], json_encode($testBody));
+        $token = bin2hex(random_bytes(40));
+        $tokenRepository = new AuthTokenRepository();
+        $tokenRepository->save(
+            new AuthToken(
+                $token,
+                'testy1@tasty.com',
+                (new DateTimeImmutable())->modify('+1 day')
+            )
+        );
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $identification = new JsonBodyIdIdentification($userRepository);
-        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
+        $testBody = array('author_id' => '1', 'text' => 'some text', 'title' => 'some title');
+        $request = new RequestTest([], [], json_encode($testBody), 'Bearer '.$token);
+        $authentication = new BearerTokenAuthentication(new AuthTokenRepository, $userRepository);
+        $action = new CreatePostAction($postRepository, $authentication, new DummyLogger());
 
         $response = $action->handle($request);
         $this->assertInstanceOf(SuccessfulResponse::class, $response);
@@ -42,15 +56,24 @@ class CreatePostActionTest extends TestCase
     */
     public function testItReturnsErrorResponseIfIdIsWrong(): void
     {
+        $token = bin2hex(random_bytes(40));
+        $tokenRepository = new AuthTokenRepository();
+        $tokenRepository->save(
+            new AuthToken(
+                $token,
+                'testy1@tasty.com',
+                (new DateTimeImmutable())->modify('+1 day')
+            )
+        );
         $testBody = array('author_id' => 'abc', 'text' => 'some text', 'title' => 'some title');
-        $request = new Request([], [], json_encode($testBody));
+        $request = new RequestTest([], [], json_encode($testBody), 'Bearer '.$token);
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $identification = new JsonBodyIdIdentification($userRepository);
+        $authentication = new BearerTokenAuthentication(new AuthTokenRepository, $userRepository);
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('author_id must be int');
 
-        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
+        $action = new CreatePostAction($postRepository, $authentication, new DummyLogger());
         $response = $action->handle($request);
         $response->send();
     }
@@ -64,11 +87,11 @@ class CreatePostActionTest extends TestCase
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $identification = new JsonBodyIdIdentification($userRepository);
+        $authentication = new BearerTokenAuthentication(new AuthTokenRepository, $userRepository);
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('No user with such id');
 
-        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
+        $action = new CreatePostAction($postRepository, $authentication, new DummyLogger());
         $response = $action->handle($request);
         $response->send();
     }
@@ -82,8 +105,8 @@ class CreatePostActionTest extends TestCase
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $identification = new JsonBodyIdIdentification($userRepository);
-        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
+        $authentication = new BearerTokenAuthentication(new AuthTokenRepository, $userRepository);
+        $action = new CreatePostAction($postRepository, $authentication, new DummyLogger());
 
         $response = $action->handle($request);
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -100,11 +123,11 @@ class CreatePostActionTest extends TestCase
         $request = new Request([], [], json_encode($testBody));
         $postRepository = $this->postRepository([]);
         $userRepository = $this->userRepository([]);
-        $identification = new JsonBodyIdIdentification($userRepository);
+        $authentication = new BearerTokenAuthentication(new AuthTokenRepository, $userRepository);
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('No such field: author_id');
 
-        $action = new CreatePostAction($postRepository, $identification, new DummyLogger());
+        $action = new CreatePostAction($postRepository, $authentication, new DummyLogger());
         $response = $action->handle($request);
         $response->send();
     }
@@ -129,6 +152,10 @@ class CreatePostActionTest extends TestCase
             public function delete(int $id): void
             {
             }
+            public function getByData(object $post): Post
+            {
+                throw new PostNotFoundException("Post not found");
+            }
         };
     }
 
@@ -147,7 +174,7 @@ class CreatePostActionTest extends TestCase
             public function get(int $id): User
             {
                 if($id === 1) {
-                    $user = new User('Ivan', 'Ivanov','test7@test.com', '123');
+                    $user = new User('John', 'Doe','testy1@tasty.com', '123');
                     $user->setId(1);
                     return $user;
                 } else {
@@ -157,13 +184,9 @@ class CreatePostActionTest extends TestCase
 
             public function getByEmail(string $email): User
             {
-                foreach ($this->users as $user) {
-                    if ($user instanceof User && $email === $user->getEmail())
-                    {
-                        return $user;
-                    }
-                }
-                throw new UserNotFoundException("User with email not found");
+                $user = new User('John', 'Doe','testy1@tasty.com', '123');
+                $user->setId(1);
+                return $user;
             }
 
             public function mapUser(object $userObj): User

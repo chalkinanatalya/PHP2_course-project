@@ -30,11 +30,23 @@ use Psr\Log\LoggerInterface;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
+use Faker\Provider\Lorem;
+use Faker\Provider\ru_RU\Internet;
+use Faker\Provider\ru_RU\Person;
+use Faker\Provider\ru_RU\Text;
+
+
 require_once __DIR__ . '/vendor/autoload.php';
 \Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
 
 
 $container = new DIContainer();
+$faker = new \Faker\Generator();
+
+$faker->addProvider(new Person($faker));
+$faker->addProvider(new Text($faker));
+$faker->addProvider(new Internet($faker));
+$faker->addProvider(new Lorem($faker));
 
 $container->bind(
     PDO::class,
@@ -79,6 +91,11 @@ $container->bind(
 $container->bind(
     TokenAuthenticationInterface::class,
     BearerTokenAuthentication::class
+);
+
+$container->bind(
+    \Faker\Generator::class,
+    $faker
 );
 
 $logger = (new Logger('blog'));

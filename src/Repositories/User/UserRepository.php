@@ -29,7 +29,10 @@ class UserRepository implements UserRepositoryInterface
 
         $statement = $this->connection->prepare(
             'INSERT INTO user (first_name, last_name, email, password)
-            VALUES (:first_name, :last_name, :email, :password)'
+            VALUES (:first_name, :last_name, :email, :password)
+            ON CONFLICT (email) DO UPDATE SET
+            first_name = :first_name,
+            last_name = :last_name'
         );
         $statement->execute([
             ':first_name' => $firstName,
@@ -37,7 +40,7 @@ class UserRepository implements UserRepositoryInterface
             ':email' => $email,
             ':password' => $password
         ]);
-        
+
         $this->logger->info("User $firstName $lastName, $email created");
     }
 
